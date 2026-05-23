@@ -46,8 +46,12 @@ class MathExpressionEvaluator {
      * Evaluates a mathematical expression at a specific x-value.
      */
     fun evaluate(expression: String, xVal: Double): Double {
-        val sanitized = preprocess(expression)
-        return Parser(sanitized, xVal).parse()
+        return try {
+            val sanitized = preprocess(expression)
+            Parser(sanitized, xVal).parse()
+        } catch (e: Throwable) {
+            Double.NaN
+        }
     }
 
     private class Parser(private val str: String, private val xVal: Double) {
