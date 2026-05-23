@@ -1215,43 +1215,48 @@ fun GraphingScreen(viewModel: MathSolverViewModel) {
 
                     val evaluator = remember { MathExpressionEvaluator() }
 
+                    // Wrap interactive states in rememberUpdatedState to prevent pointerInput restarts during dragging/panning
+                    val currentFormula by rememberUpdatedState(formula)
+                    val currentZoomLevel by rememberUpdatedState(zoomLevel)
+                    val currentDragMode by rememberUpdatedState(dragMode)
+                    val currentPanOffsetX by rememberUpdatedState(panOffsetX)
+                    val currentPanOffsetY by rememberUpdatedState(panOffsetY)
+
                     Canvas(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(MaterialTheme.colorScheme.surface)
-                            .pointerInput(formula, zoomLevel, panOffsetX, panOffsetY) {
+                            .pointerInput(Unit) {
                                 detectTapGestures { offset ->
                                     val width = size.width
                                     val height = size.height
-                                    val centerX = width / 2f + panOffsetX
-                                    val centerY = height / 2f + panOffsetY
-                                    val scaleX = width / (2f * zoomLevel)
-                                    val scaleY = height / (2f * zoomLevel)
+                                    val centerX = width / 2f + currentPanOffsetX
+                                    val centerY = height / 2f + currentPanOffsetY
+                                    val scaleX = width / (2f * currentZoomLevel)
 
                                     // map touch cursor X to math space
                                     val xMath = (offset.x - centerX) / scaleX
-                                    val yMath = evaluator.evaluate(formula, xMath.toDouble()).toFloat()
+                                    val yMath = evaluator.evaluate(currentFormula, xMath.toDouble()).toFloat()
 
                                     if (yMath.isFinite() && !yMath.isNaN()) {
                                         viewModel.setGraphPoint(Pair(xMath, yMath))
                                     }
                                 }
                             }
-                            .pointerInput(formula, zoomLevel, dragMode, panOffsetX, panOffsetY) {
+                            .pointerInput(Unit) {
                                 detectDragGestures { change, dragAmount ->
                                     change.consume()
-                                    if (dragMode == 1) {
+                                    if (currentDragMode == 1) {
                                         viewModel.pan(dragAmount.x, dragAmount.y)
                                     } else {
                                         val width = size.width
                                         val height = size.height
-                                        val centerX = width / 2f + panOffsetX
-                                        val centerY = height / 2f + panOffsetY
-                                        val scaleX = width / (2f * zoomLevel)
-                                        val scaleY = height / (2f * zoomLevel)
+                                        val centerX = width / 2f + currentPanOffsetX
+                                        val centerY = height / 2f + currentPanOffsetY
+                                        val scaleX = width / (2f * currentZoomLevel)
 
                                         val xMath = (change.position.x - centerX) / scaleX
-                                        val yMath = evaluator.evaluate(formula, xMath.toDouble()).toFloat()
+                                        val yMath = evaluator.evaluate(currentFormula, xMath.toDouble()).toFloat()
 
                                         if (yMath.isFinite() && !yMath.isNaN()) {
                                             viewModel.setGraphPoint(Pair(xMath, yMath))

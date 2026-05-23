@@ -53,6 +53,7 @@ class MathSolverService {
             Log.e("MathSolverService", "Error solving problem", e)
             val friendlyError = if (e is retrofit2.HttpException) {
                 when (e.code()) {
+                    400 -> Exception("HTTP 400 Bad Request: Invalid request or API key. Please make sure the API key is active, unrestricted, and formatted correctly.")
                     403 -> Exception("HTTP 403 Forbidden: Your Gemini API key is invalid, restricted, or your region is not supported by Google Gemini API. Please make sure to add a valid, unrestricted GEMINI_API_KEY in the AI Studio Secrets panel.")
                     404 -> Exception("HTTP 404 Not Found: The requested Gemini model endpoint is unavailable. Please verify the model configuration.")
                     429 -> Exception("HTTP 429 Too Many Requests: Gemini API rate limit exceeded. Please wait a moment and try again.")
