@@ -1,6 +1,11 @@
 package com.example.ui
 
 import android.widget.Toast
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -207,6 +212,27 @@ fun SolverScreen(viewModel: MathSolverViewModel) {
     var cameraZoom by remember { mutableStateOf(1f) }
     val scope = rememberCoroutineScope()
 
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { granted ->
+            hasCameraPermission = granted
+            if (granted) {
+                showScanner = true
+            } else {
+                Toast.makeText(context, "Camera permission is required to scan equations", Toast.LENGTH_SHORT).show()
+            }
+        }
+    )
+
     val mathSymbols = listOf(
         "√()", "^2", "^", "π", "θ", "∫", "∑", "lim", "d/dx", "log()", "ln()", "sin()", "cos()", "tan()", " ( ", " ) ", "+", "-", "*", "/"
     )
@@ -261,7 +287,13 @@ fun SolverScreen(viewModel: MathSolverViewModel) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showScanner = true }
+                        .clickable {
+                            if (hasCameraPermission) {
+                                showScanner = true
+                            } else {
+                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                        }
                         .testTag("btn_open_scanner"),
                     shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(
@@ -496,7 +528,12 @@ fun SolverScreen(viewModel: MathSolverViewModel) {
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .fillMaxHeight(0.015f)
-                                    .offset(y = 220.dp * sweepRatio)
+                                    .offset {
+                                        androidx.compose.ui.unit.IntOffset(
+                                            0,
+                                            (220.dp.toPx() * sweepRatio).toInt()
+                                        )
+                                    }
                                     .background(
                                         Brush.verticalGradient(
                                             colors = listOf(
