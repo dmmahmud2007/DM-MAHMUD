@@ -1,0 +1,6 @@
+{
+  "name": "Math Solver",
+  "description": "An Android app that can solve algebra, higher mathematics, calculus, statistics, and graphing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
